@@ -144,20 +144,20 @@ export default function IntroSequence({ onComplete }: { onComplete: () => void }
             <p
               style={{
                 color: "#e8e8e8",
-                fontSize: "clamp(1.15rem, 2.8vw, 2rem)",
+                fontSize: "clamp(1.05rem, 5vw, 2rem)",
                 fontWeight: 300,
                 fontStyle: "italic",
                 textAlign: "center",
-                maxWidth: "740px",
-                lineHeight: 1.7,
+                maxWidth: "min(740px, 90vw)",
+                lineHeight: 1.6,
                 letterSpacing: "0.01em",
                 marginBottom: "2.8rem",
                 textShadow: "0 0 30px rgba(0,255,127,0.15)",
+                textWrap: "balance",
               }}
             >
-              &ldquo;Diseñado para emprendedores que tienen la visión,
-              <br />
-              pero necesitan la tribu.&rdquo;
+              &ldquo;Diseñado para emprendedores que tienen la visión, pero
+              necesitan la tribu.&rdquo;
             </p>
 
             {phase === "message" && (
@@ -206,8 +206,8 @@ export default function IntroSequence({ onComplete }: { onComplete: () => void }
             justifyContent: "center",
             background:
               "radial-gradient(ellipse at center, rgba(20,20,25,1) 0%, #000 70%)",
-            gap: "3.5rem",
-            padding: "2rem",
+            gap: "clamp(2.5rem, 6vh, 3.5rem)",
+            padding: "2rem 1.5rem",
           }}
         >
           <div style={{ textAlign: "center" }}>
@@ -225,7 +225,7 @@ export default function IntroSequence({ onComplete }: { onComplete: () => void }
             <h2
               style={{
                 color: "#d8d8d8",
-                fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)",
+                fontSize: "clamp(1.5rem, 6vw, 2.6rem)",
                 fontWeight: 300,
                 letterSpacing: "0.04em",
               }}
@@ -234,14 +234,7 @@ export default function IntroSequence({ onComplete }: { onComplete: () => void }
             </h2>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "1.75rem",
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
+          <div className="nes-pill-group">
             <PillButton color="red" label="Adelante" onClick={handleAdelante} />
             <PillButton color="blue" label="Volver atrás" onClick={handleVolver} />
           </div>
@@ -251,7 +244,7 @@ export default function IntroSequence({ onComplete }: { onComplete: () => void }
               color: "#2a2a2a",
               fontSize: "0.78rem",
               letterSpacing: "0.12em",
-              maxWidth: "440px",
+              maxWidth: "min(440px, 85vw)",
               textAlign: "center",
               lineHeight: 1.6,
             }}
@@ -281,6 +274,7 @@ function PillButton({
   return (
     <button
       onClick={onClick}
+      className="nes-pill"
       style={{
         position: "relative",
         padding: "1.15rem 3.2rem",
@@ -294,7 +288,6 @@ function PillButton({
         letterSpacing: "0.12em",
         textTransform: "uppercase",
         transition: "all 0.3s",
-        minWidth: "180px",
         boxShadow: `0 0 0 0 ${accentSoft}`,
       }}
       onMouseEnter={(e) => {

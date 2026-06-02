@@ -82,3 +82,57 @@
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform;
 }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile-first overrides
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* Contenedor de las pastillas: por defecto fila, en móvil columna */
+.nes-pill-group {
+  display: flex;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+}
+
+.nes-pill {
+  min-width: 180px;
+}
+
+/* Móvil: pastillas en columna, a ancho completo, con aire entre ellas */
+@media (max-width: 600px) {
+  .nes-pill-group {
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 320px;
+  }
+  .nes-pill {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* En móvil desactivamos el magnetismo y el hover-lift de las letras
+   (no aplica en touch y evita "saltos" raros) */
+@media (hover: none) {
+  .nes-magnetic {
+    transform: none !important;
+  }
+  .nes-letter:hover {
+    transform: none;
+    color: inherit;
+  }
+}
+
+/* Reduce-motion: respeta la preferencia del sistema */
+@media (prefers-reduced-motion: reduce) {
+  .nes-aura,
+  .nes-beam,
+  .nes-scroll-hint,
+  .nes-float {
+    animation: none !important;
+  }
+}

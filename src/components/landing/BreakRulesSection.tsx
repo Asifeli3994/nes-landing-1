@@ -18,11 +18,29 @@ const INITIAL: CardData[] = [
   { id: "d", label: "DUDAS",         desc: "Validar ideas en una cámara de eco",         rot: -8, x:  -20, y: -150, color: "#ec4899" },
 ]
 
+/** Escala las posiciones de las cartas según el ancho del viewport para que
+ *  nunca se salgan de pantalla (móvil compacto, desktop amplio). */
+function computeSpread(w: number): number {
+  if (w < 480) return 0.42
+  if (w < 768) return 0.62
+  if (w < 1024) return 0.82
+  return 1
+}
+
 export default function BreakRulesSection() {
   const [cards, setCards] = useState<CardData[]>(INITIAL)
   const [exploding, setExploding] = useState<Set<string>>(new Set())
   const sectionRef = useRef<HTMLElement>(null)
   const [inView, setInView] = useState(false)
+  const [spread, setSpread] = useState(() =>
+    typeof window === "undefined" ? 1 : computeSpread(window.innerWidth)
+  )
+
+  useEffect(() => {
+    const onResize = () => setSpread(computeSpread(window.innerWidth))
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [])
 
   useEffect(() => {
     const el = sectionRef.current
@@ -108,7 +126,7 @@ export default function BreakRulesSection() {
           position: "relative",
           maxWidth: "1100px",
           margin: "0 auto",
-          height: "440px",
+          height: "clamp(420px, 60vh, 480px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -154,6 +172,7 @@ export default function BreakRulesSection() {
           <BreakCard
             key={c.id}
             data={c}
+            spread={spread}
             inView={inView}
             isExploding={exploding.has(c.id)}
             onDestroy={() => explode(c.id)}
@@ -166,11 +185,13 @@ export default function BreakRulesSection() {
 
 function BreakCard({
   data,
+  spread,
   inView,
   isExploding,
   onDestroy,
 }: {
   data: CardData
+  spread: number
   inView: boolean
   isExploding: boolean
   onDestroy: () => void
@@ -192,7 +213,11 @@ function BreakCard({
     return () => clearTimeout(t)
   }, [inView])
 
-  const baseTransform = `translate(calc(-50% + ${data.x}px), calc(-50% + ${data.y}px)) rotate(${data.rot}deg) scale(${appeared ? 1 : 0.7})`
+  // Posiciones y escala adaptadas al viewport (spread)
+  const px = Math.round(data.x * spread)
+  const py = Math.round(data.y * spread)
+  const cardScale = spread < 0.5 ? 0.82 : spread < 0.7 ? 0.9 : 1
+  const baseTransform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px)) rotate(${data.rot}deg) scale(${appeared ? cardScale : cardScale * 0.7})`
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (isExploding) return
@@ -213,7 +238,7 @@ function BreakCard({
     if (!d || !d.active || !ref.current) return
     d.dx = e.clientX - d.startX
     d.dy = e.clientY - d.startY
-    ref.current.style.transform = `translate(calc(-50% + ${data.x + d.dx}px), calc(-50% + ${data.y + d.dy}px)) rotate(${data.rot + d.dx * 0.05}deg) scale(1)`
+    ref.current.style.transform = `translate(calc(-50% + ${px + d.dx}px), calc(-50% + ${py + d.dy}px)) rotate(${data.rot + d.dx * 0.05}deg) scale(${cardScale})`
   }
 
   const onPointerUp = () => {
@@ -260,8 +285,8 @@ function BreakCard({
         opacity: appeared ? 1 : 0,
         transition:
           "transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease-out",
-        width: "210px",
-        padding: "1.4rem 1.3rem",
+        width: spread < 0.5 ? "168px" : "210px",
+        padding: spread < 0.5 ? "1.1rem 1rem" : "1.4rem 1.3rem",
         background: "rgba(20,20,25,0.88)",
         backdropFilter: "blur(12px)",
         border: `1px solid ${data.color}55`,

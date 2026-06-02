@@ -4,27 +4,41 @@ import HeroSection from "./components/landing/HeroSection"
 import BreakRulesSection from "./components/landing/BreakRulesSection"
 import HorizontalBenefits from "./components/landing/HorizontalBenefits"
 import FinalCTASection from "./components/landing/FinalCTASection"
+import Survey from "./components/survey/Survey"
+import WaitingScreen from "./components/survey/WaitingScreen"
 import "./styles/landing.css"
 
+type Screen = "intro" | "landing" | "survey" | "waiting"
+
 /**
- * Landing inmersiva (standalone). Flujo:
- *   1. Si es la primera visita de la sesión → intro Matrix + pills.
- *   2. Tras "Adelante" (o si ya la vio) → Landing completa.
+ * Landing inmersiva con acceso restringido (encuesta de admisión).
  *
- * Los botones CTA (Entrar, Unirme a la tribu, Cruzar el umbral) abren la URL
- * del proyecto del login (configurable en src/lib/loginUrl.ts o vía
- * VITE_LOGIN_URL).
+ * Flujo:
+ *   intro  → Matrix + pills (solo primera visita por sesión)
+ *   landing → Hero + BreakRules + Horizontal + FinalCTA
+ *   survey  → 12 preguntas, una a una, con barra de progreso azul
+ *   waiting → countdown 30:00 + botón de acceso inmediato al login
  */
 export default function App() {
-  const [introDone, setIntroDone] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    return sessionStorage.getItem("nes:introSeen") === "1"
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (typeof window === "undefined") return "intro"
+    return sessionStorage.getItem("nes:introSeen") === "1" ? "landing" : "intro"
   })
 
   const completeIntro = () => {
     sessionStorage.setItem("nes:introSeen", "1")
-    setIntroDone(true)
+    setScreen("landing")
     window.scrollTo({ top: 0, behavior: "auto" })
+  }
+
+  const openSurvey = () => {
+    window.scrollTo({ top: 0, behavior: "auto" })
+    setScreen("survey")
+  }
+
+  const submitDone = () => {
+    window.scrollTo({ top: 0, behavior: "auto" })
+    setScreen("waiting")
   }
 
   return (
@@ -36,16 +50,25 @@ export default function App() {
         fontFamily: "'Inter','Segoe UI',system-ui,sans-serif",
       }}
     >
-      {!introDone && <IntroSequence onComplete={completeIntro} />}
+      {screen === "intro" && <IntroSequence onComplete={completeIntro} />}
 
-      {introDone && (
+      {(screen === "landing" || screen === "survey" || screen === "waiting") && (
         <>
           <HeroSection />
           <BreakRulesSection />
           <HorizontalBenefits />
-          <FinalCTASection />
+          <FinalCTASection onCrossThreshold={openSurvey} />
         </>
       )}
+
+      {screen === "survey" && (
+        <Survey
+          onSubmit={submitDone}
+          onClose={() => setScreen("landing")}
+        />
+      )}
+
+      {screen === "waiting" && <WaitingScreen />}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 
 type Panel = {
   num: string
+  kicker: string
   title: string
   body: string
   accent: string
@@ -11,37 +12,28 @@ type Panel = {
 const PANELS: Panel[] = [
   {
     num: "I",
-    title: "Contactos de alto nivel",
+    kicker: "Contactos",
+    title: "Sin un círculo que te empuje a mejorar",
     body:
-      "Empresarios, inversores y fundadores reales. Conexiones que normalmente cuestan miles en redes premium.",
-    accent: "#ef4444",
-    bg: "radial-gradient(circle at 20% 30%, rgba(239,68,68,0.18), transparent 50%)",
+      "Fundadores reales y personas con ideas, de las que cuesta encontrar fuera de aquí.",
+    accent: "#3b82f6",
+    bg: "radial-gradient(circle at 20% 30%, rgba(59,130,246,0.20), transparent 55%)",
   },
   {
     num: "II",
-    title: "Masterminds semanales",
+    kicker: "Masterminds",
+    title: "Masterminds con usuarios",
     body:
-      "Reuniones íntimas donde resuelves tus bloqueos reales con personas que ya pasaron por ahí.",
+      "Espacios de mentoría y feedback directo entre los miembros. Sin gurús, sin postureo.",
     accent: "#22d3ee",
-    bg: "radial-gradient(circle at 80% 30%, rgba(34,211,238,0.18), transparent 50%)",
-  },
-  {
-    num: "III",
-    title: "Recursos ocultos",
-    body:
-      "Plantillas, contactos directos, herramientas y datos privados que no aparecen en ningún Google.",
-    accent: "#a855f7",
-    bg: "radial-gradient(circle at 50% 70%, rgba(168,85,247,0.2), transparent 55%)",
-  },
-  {
-    num: "IV",
-    title: "Una tribu que responde",
-    body:
-      "Mensajes contestados en minutos. Cero ghosting. Cuando tropiezas, hay manos extendidas.",
-    accent: "#22c55e",
-    bg: "radial-gradient(circle at 30% 80%, rgba(34,197,94,0.18), transparent 50%)",
+    bg: "radial-gradient(circle at 80% 40%, rgba(34,211,238,0.18), transparent 55%)",
   },
 ]
+
+// Una pantalla extra al final para que el último panel "dwellee" antes de
+// liberar el sticky (fix del bug de scroll horizontal que se desbloqueaba
+// demasiado pronto).
+const TRAILING_DWELL_VH = 1
 
 export default function HorizontalBenefits() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -51,11 +43,19 @@ export default function HorizontalBenefits() {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+
     const onScroll = () => {
       const rect = container.getBoundingClientRect()
-      const total = container.offsetHeight - window.innerHeight
+      const totalScrollable = container.offsetHeight - window.innerHeight
+      // Reservamos `TRAILING_DWELL_VH` viewports al final para que el último
+      // panel se quede en su sitio mientras el usuario sigue haciendo scroll
+      // antes de que se libere el sticky.
+      const horizScrollBudget = Math.max(
+        1,
+        totalScrollable - window.innerHeight * TRAILING_DWELL_VH
+      )
       const passed = -rect.top
-      const p = Math.max(0, Math.min(1, passed / total))
+      const p = Math.max(0, Math.min(1, passed / horizScrollBudget))
       setProgress(p)
     }
     onScroll()
@@ -68,13 +68,14 @@ export default function HorizontalBenefits() {
   }, [])
 
   const translatePct = -progress * (PANELS.length - 1) * 100
+  const sectionHeightVh = PANELS.length * 100 + TRAILING_DWELL_VH * 100
 
   return (
     <section
       ref={containerRef}
       style={{
         position: "relative",
-        height: `${PANELS.length * 100}vh`,
+        height: `${sectionHeightVh}vh`,
         background: "#050505",
       }}
     >
@@ -87,15 +88,16 @@ export default function HorizontalBenefits() {
           overflow: "hidden",
         }}
       >
+        {/* Indicador lateral de progreso por panel */}
         <div
           style={{
             position: "absolute",
             top: "50%",
-            right: "2rem",
+            right: "1.25rem",
             transform: "translateY(-50%)",
             display: "flex",
             flexDirection: "column",
-            gap: "0.8rem",
+            gap: "0.85rem",
             zIndex: 10,
           }}
         >
@@ -105,34 +107,31 @@ export default function HorizontalBenefits() {
               <div
                 key={i}
                 style={{
-                  width: isActive ? "3px" : "2px",
-                  height: isActive ? "32px" : "16px",
-                  background: isActive
-                    ? PANELS[i].accent
-                    : "rgba(255,255,255,0.2)",
-                  borderRadius: "2px",
+                  width: isActive ? 3 : 2,
+                  height: isActive ? 32 : 16,
+                  background: isActive ? PANELS[i].accent : "rgba(255,255,255,0.2)",
+                  borderRadius: 2,
                   transition: "all 0.4s",
-                  boxShadow: isActive
-                    ? `0 0 12px ${PANELS[i].accent}`
-                    : "none",
+                  boxShadow: isActive ? `0 0 12px ${PANELS[i].accent}` : "none",
                 }}
               />
             )
           })}
         </div>
 
+        {/* Header */}
         <div
           style={{
             position: "absolute",
             top: "3rem",
-            left: "2rem",
+            left: "1.75rem",
             zIndex: 10,
             maxWidth: "300px",
           }}
         >
           <p
             style={{
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.42)",
               fontSize: "0.72rem",
               letterSpacing: "0.25em",
               textTransform: "uppercase",
@@ -144,7 +143,7 @@ export default function HorizontalBenefits() {
           <p
             style={{
               color: "#fff",
-              fontSize: "0.95rem",
+              fontSize: "0.92rem",
               fontWeight: 500,
               opacity: 0.8,
             }}
@@ -153,6 +152,7 @@ export default function HorizontalBenefits() {
           </p>
         </div>
 
+        {/* Track horizontal */}
         <div
           ref={trackRef}
           style={{
@@ -165,10 +165,17 @@ export default function HorizontalBenefits() {
           }}
         >
           {PANELS.map((p, i) => (
-            <BenefitPanel key={i} panel={p} index={i} progress={progress} total={PANELS.length} />
+            <BenefitPanel
+              key={i}
+              panel={p}
+              index={i}
+              progress={progress}
+              total={PANELS.length}
+            />
           ))}
         </div>
 
+        {/* Hint flecha */}
         <div
           className="nes-scroll-hint"
           style={{
@@ -177,7 +184,7 @@ export default function HorizontalBenefits() {
             left: "50%",
             transform: "translateX(-50%)",
             color: "rgba(255,255,255,0.4)",
-            fontSize: "0.78rem",
+            fontSize: "0.74rem",
             letterSpacing: "0.2em",
             textTransform: "uppercase",
             display: "flex",
@@ -205,8 +212,8 @@ function BenefitPanel({
 }) {
   const myProgress = progress * (total - 1)
   const distance = Math.abs(myProgress - index)
-  const opacity = Math.max(0.3, 1 - distance * 0.7)
-  const translateY = distance * 30
+  const opacity = Math.max(0.32, 1 - distance * 0.7)
+  const translateY = distance * 28
 
   return (
     <div
@@ -217,10 +224,11 @@ function BenefitPanel({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 2rem",
+        padding: "0 clamp(1.25rem, 4vw, 3rem)",
         background: panel.bg,
       }}
     >
+      {/* Número de fondo gigante */}
       <div
         style={{
           position: "absolute",
@@ -228,9 +236,9 @@ function BenefitPanel({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "clamp(20rem, 50vw, 40rem)",
+          fontSize: "clamp(16rem, 50vw, 40rem)",
           fontWeight: 900,
-          color: "rgba(255,255,255,0.02)",
+          color: "rgba(255,255,255,0.022)",
           letterSpacing: "-0.1em",
           pointerEvents: "none",
           userSelect: "none",
@@ -240,17 +248,19 @@ function BenefitPanel({
         {panel.num}
       </div>
 
+      {/* Tarjeta glassmorphism */}
       <div
         style={{
           position: "relative",
+          width: "100%",
           maxWidth: "560px",
-          padding: "3rem 2.5rem",
-          background: "rgba(15,15,18,0.55)",
+          padding: "clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem)",
+          background: "rgba(15,15,20,0.6)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          border: `1px solid ${panel.accent}33`,
-          borderRadius: "24px",
-          boxShadow: `0 30px 80px -20px ${panel.accent}25, inset 0 1px 0 rgba(255,255,255,0.05)`,
+          border: `1px solid ${panel.accent}40`,
+          borderRadius: 22,
+          boxShadow: `0 30px 80px -20px ${panel.accent}30, inset 0 1px 0 rgba(255,255,255,0.05)`,
           opacity,
           transform: `translateY(${translateY}px)`,
           transition: "opacity 0.3s, transform 0.3s",
@@ -260,31 +270,32 @@ function BenefitPanel({
         <div
           style={{
             color: panel.accent,
-            fontSize: "0.75rem",
+            fontSize: "0.74rem",
             letterSpacing: "0.3em",
             textTransform: "uppercase",
             marginBottom: "1rem",
             fontWeight: 600,
           }}
         >
-          {panel.num} de {total}
+          {panel.num} · {panel.kicker}
         </div>
         <h3
           style={{
             color: "#fff",
-            fontSize: "clamp(2rem, 4.5vw, 3rem)",
+            fontSize: "clamp(1.7rem, 4.2vw, 2.6rem)",
             fontWeight: 800,
-            letterSpacing: "-0.03em",
-            lineHeight: 1.05,
-            marginBottom: "1.5rem",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.1,
+            marginBottom: "1.25rem",
+            textWrap: "balance",
           }}
         >
           {panel.title}
         </h3>
         <p
           style={{
-            color: "rgba(255,255,255,0.7)",
-            fontSize: "1.05rem",
+            color: "rgba(255,255,255,0.72)",
+            fontSize: "clamp(0.98rem, 1.4vw, 1.08rem)",
             lineHeight: 1.7,
             margin: 0,
           }}

@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react"
-import MagneticButton from "./MagneticButton"
-import { goToLogin } from "../../lib/loginUrl"
 
 /**
- * Hero brutalista:
- * - Fondo con parallax controlado por la posición del cursor (CSS vars).
- * - Titular gigante con letras hover-reactivas.
- * - Subtítulo intrigante + CTA magnética que abre el login externo.
+ * Hero brutalista (azul/cyan, sin CTA — el único CTA está al final):
+ * - Parallax suave con cursor (CSS vars).
+ * - Titular gigante "CONSTRUYE. COMO NUNCA. CON TU TRIBU." con hover por letra.
+ * - Subtítulo intrigante: acceso restringido.
  */
 export default function HeroSection() {
   const wrapperRef = useRef<HTMLElement>(null)
@@ -41,14 +39,14 @@ export default function HeroSection() {
         "--my": 0,
       }}
     >
-      {/* Grid + glow */}
+      {/* Grid + glow azul/verde */}
       <div
         style={{
           position: "absolute",
           inset: "-10%",
           backgroundImage: `
-            radial-gradient(circle at 30% 40%, rgba(239,68,68,0.15) 0%, transparent 40%),
-            radial-gradient(circle at 70% 60%, rgba(34,211,238,0.12) 0%, transparent 45%),
+            radial-gradient(circle at 30% 40%, rgba(59,130,246,0.18) 0%, transparent 42%),
+            radial-gradient(circle at 70% 60%, rgba(0,255,127,0.10) 0%, transparent 45%),
             linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)
           `,
@@ -60,7 +58,7 @@ export default function HeroSection() {
         }}
       />
 
-      {/* Estrellas */}
+      {/* Estrellas (parallax más cercano) */}
       <div
         style={{
           position: "absolute",
@@ -75,20 +73,19 @@ export default function HeroSection() {
             "translate3d(calc(var(--mx) * -10px), calc(var(--my) * -10px), 0)",
           transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
           pointerEvents: "none",
-          opacity: 0.7,
+          opacity: 0.65,
         }}
       />
 
-      {/* Mini-nav */}
-      <nav
+      {/* Logo top-left (minimal, sin link) */}
+      <div
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          padding: "1.5rem 2rem",
+          padding: "1.5rem 1.75rem",
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
           zIndex: 10,
         }}
@@ -101,34 +98,11 @@ export default function HeroSection() {
             letterSpacing: "0.05em",
           }}
         >
-          NES<span style={{ color: "#ef4444" }}>.</span>
+          NES<span style={{ color: "#3b82f6" }}>.</span>
         </span>
-        <button
-          onClick={goToLogin}
-          style={{
-            background: "transparent",
-            color: "rgba(255,255,255,0.7)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            padding: "0.5rem 1.1rem",
-            borderRadius: "999px",
-            fontSize: "0.82rem",
-            cursor: "pointer",
-            fontWeight: 500,
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.45)"
-            e.currentTarget.style.color = "#fff"
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"
-            e.currentTarget.style.color = "rgba(255,255,255,0.7)"
-          }}
-        >
-          Entrar
-        </button>
-      </nav>
+      </div>
 
+      {/* Contenido */}
       <div
         style={{
           position: "relative",
@@ -139,39 +113,41 @@ export default function HeroSection() {
           textAlign: "center",
         }}
       >
+        {/* Badge */}
         <div
           className="nes-fade-up"
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "0.5rem",
+            gap: "0.55rem",
             padding: "0.4rem 1rem",
             borderRadius: "999px",
-            background: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.25)",
-            color: "#fca5a5",
-            fontSize: "0.78rem",
-            letterSpacing: "0.08em",
+            background: "rgba(59,130,246,0.08)",
+            border: "1px solid rgba(59,130,246,0.28)",
+            color: "#93c5fd",
+            fontSize: "0.76rem",
+            letterSpacing: "0.16em",
             marginBottom: "2.5rem",
             textTransform: "uppercase",
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
           <span
             style={{
-              width: "6px",
-              height: "6px",
-              borderRadius: "999px",
-              background: "#ef4444",
-              boxShadow: "0 0 10px #ef4444",
+              width: 6,
+              height: 6,
+              borderRadius: 999,
+              background: "#00ff7f",
+              boxShadow: "0 0 10px #00ff7f",
             }}
           />
-          Acceso por invitación
+          Acceso restringido
         </div>
 
+        {/* Titular */}
         <h1
           style={{
-            fontSize: "clamp(2.8rem, 9vw, 7rem)",
+            fontSize: "clamp(2.6rem, 9vw, 7rem)",
             fontWeight: 900,
             lineHeight: 0.95,
             letterSpacing: "-0.04em",
@@ -182,94 +158,75 @@ export default function HeroSection() {
         >
           <BrutalLine text="CONSTRUYE." delay={0} />
           <BrutalLine
-            text="SIN RED."
+            text="COMO NUNCA."
             delay={120}
             style={{
               display: "block",
-              color: "#888",
+              color: "#9ca3af",
               fontStyle: "italic",
               fontWeight: 400,
-              textDecoration: "line-through",
-              textDecorationColor: "#ef4444",
-              textDecorationThickness: "6px",
             }}
           />
+          {/* Tercera línea con gradient — sin spans por letra para que
+              background-clip:text funcione correctamente */}
           <span
             className="nes-fade-up"
             style={{
               display: "block",
               animationDelay: "240ms",
               background:
-                "linear-gradient(90deg, #fff 0%, #ef4444 50%, #fff 100%)",
+                "linear-gradient(90deg, #fff 0%, #22d3ee 50%, #00ff7f 100%)",
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0 0 30px rgba(239,68,68,0.3))",
+              filter: "drop-shadow(0 0 30px rgba(34,211,238,0.28))",
             }}
           >
             CON TU TRIBU.
           </span>
         </h1>
 
+        {/* Subtítulo */}
         <p
           className="nes-fade-up"
           style={{
             fontSize: "clamp(1rem, 1.6vw, 1.2rem)",
-            color: "rgba(255,255,255,0.6)",
-            maxWidth: "560px",
-            margin: "2.5rem auto 3rem",
-            lineHeight: 1.65,
+            color: "rgba(255,255,255,0.62)",
+            maxWidth: "min(620px, 90vw)",
+            margin: "2.5rem auto 0",
+            lineHeight: 1.7,
             animationDelay: "0.5s",
+            textWrap: "balance",
           }}
         >
-          El club secreto de los que no se conforman.
+          El club de los que no se conforman.
           <br />
-          No mostramos lo que hay dentro a cualquiera.
+          Acceso restringido. No mostramos lo que hay dentro a cualquiera.
         </p>
 
+        {/* Trust indicators (sin CTA) */}
         <div
           className="nes-fade-up"
-          style={{ animationDelay: "0.7s", marginBottom: "2rem" }}
-        >
-          <MagneticButton
-            onClick={goToLogin}
-            style={{
-              position: "relative",
-              padding: "1.2rem 3rem",
-              background: "#fff",
-              color: "#000",
-              border: "none",
-              borderRadius: "999px",
-              fontSize: "1rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              letterSpacing: "0.04em",
-              boxShadow:
-                "0 20px 60px -10px rgba(255,255,255,0.4), 0 0 0 1px rgba(255,255,255,0.1)",
-            }}
-          >
-            Unirme a la tribu →
-          </MagneticButton>
-        </div>
-
-        <div
           style={{
             display: "flex",
             gap: "2rem",
             justifyContent: "center",
             flexWrap: "wrap",
-            color: "rgba(255,255,255,0.35)",
-            fontSize: "0.75rem",
-            letterSpacing: "0.1em",
+            color: "rgba(255,255,255,0.32)",
+            fontSize: "0.74rem",
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
+            marginTop: "3rem",
+            animationDelay: "0.7s",
           }}
         >
-          <span>· 1:1 Matching ·</span>
+          <span>· Encuesta de admisión ·</span>
           <span>· Masterminds ·</span>
           <span>· Sin spam ·</span>
         </div>
       </div>
 
+      {/* Scroll hint */}
       <div
         style={{
           position: "absolute",

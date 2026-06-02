@@ -34,7 +34,7 @@
 }
 .nes-glitch-bar { animation: nes-glitch-bars 0.4s linear; }
 
-/* ── Aura pulse (final CTA) ────────────────────────────────────────────── */
+/* ── Aura pulse (final CTA) — variantes ───────────────────────────────── */
 @keyframes nes-aura {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55),
                          0 0 30px 4px rgba(239, 68, 68, 0.25),
@@ -44,6 +44,16 @@
                          inset 0 0 22px rgba(255, 255, 255, 0.1); }
 }
 .nes-aura { animation: nes-aura 2.2s ease-in-out infinite; }
+
+@keyframes nes-aura-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55),
+                         0 0 30px 4px rgba(59, 130, 246, 0.25),
+                         inset 0 0 18px rgba(255, 255, 255, 0.05); }
+  50%      { box-shadow: 0 0 0 22px rgba(59, 130, 246, 0),
+                         0 0 60px 10px rgba(34, 211, 238, 0.45),
+                         inset 0 0 22px rgba(255, 255, 255, 0.1); }
+}
+.nes-aura-blue { animation: nes-aura-blue 2.4s ease-in-out infinite; }
 
 /* ── Generic entrance ──────────────────────────────────────────────────── */
 @keyframes nes-fade-up {
@@ -60,7 +70,12 @@
 }
 .nes-letter:hover {
   transform: translateY(-8px) rotate(-4deg) scale(1.05);
-  color: #ef4444;
+  color: #22d3ee;
+}
+
+/* ── Survey: hover sutil en las opciones ──────────────────────────────── */
+.nes-survey-opt:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* ── Light beam guide (final CTA) ──────────────────────────────────────── */

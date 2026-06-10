@@ -4,9 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="La tribu de los que no se conforman. Acceso por invitación." />
-    <meta name="theme-color" content="#050505" />
-    <title>No Emprendas Solo · La tribu</title>
+    <meta name="description" content="Aplicación educativa interactiva de Historia. Timelines, flashcards, quizzes y mapas causales." />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+    <title>Historia Interactiva</title>
+    <script>
+      // Apply dark mode class before React renders to avoid FOUC
+      (function () {
+        var stored = localStorage.getItem('historia-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

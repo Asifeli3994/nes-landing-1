@@ -1,0 +1,15 @@
+{
+  "name": "agente-palmadas",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:x11": "electron . --ozone-platform=x11"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@nut-tree-fork/nut-js": "latest",
+    "dotenv": "latest",
+    "electron": "latest"
+  }
+}

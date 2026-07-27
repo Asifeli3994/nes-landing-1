@@ -1,81 +1,28 @@
 import type { ReactNode } from "react"
 
-export type WaitlistMode =
-  /** Solicitud guardada, falta que confirme el email. */
-  | "pending"
-  /** Guardada, pero el correo de confirmación no llegó a salir. */
-  | "email-failed"
-  /** Vuelve de pinchar el enlace del correo: ya tiene puesto en la cola. */
-  | "confirmed"
-
 type Props = {
-  /** Email guardado en el insert, para mostrarlo en la confirmación */
-  email?: string
-  mode: WaitlistMode
-  /** Puesto en la cola. Solo existe en modo "confirmed". */
+  /** Puesto en la cola. Se asigna al momento, sin esperar a ningún email. */
   queueNumber?: number | null
-}
-
-type Copy = {
-  badge: string
-  badgeColor: string
-  title: string
-  gradient: string
-  body: ReactNode
 }
 
 const strong = (t: string) => <strong style={{ color: "#fff", fontWeight: 600 }}>{t}</strong>
 
-/**
- * Pantalla final del embudo. queue_number solo se asigna al confirmar el email
- * (doble opt-in), así que hasta entonces no se enseña ningún número.
- */
-export default function WaitlistScreen({ email, mode, queueNumber }: Props) {
-  const copy: Copy =
-    mode === "confirmed"
-      ? {
-          badge: "Estás dentro",
-          badgeColor: "#00ff7f",
-          title: "Confirmado.",
-          gradient: "linear-gradient(135deg, #00ff7f 0%, #22d3ee 100%)",
-          body: (
-            <>
-              {queueNumber ? <>Tu puesto en la lista es el {strong(`#${queueNumber}`)}. </> : null}
-              Se entra por cohortes, en grupos pequeños y por orden de llegada.
-              Cuando abra la próxima te mandamos {strong("tu código de acceso")} a
-              tu correo. No tienes que hacer nada más.
-            </>
-          ),
-        }
-      : mode === "email-failed"
-        ? {
-            badge: "Solicitud guardada",
-            badgeColor: "#f59e0b",
-            title: "Estás apuntado.",
-            gradient: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-            body: (
-              <>
-                Tu solicitud quedó guardada, pero no hemos podido mandarte el
-                correo de confirmación ahora mismo. Revisa tu bandeja
-                {email ? <> ({strong(email)})</> : null} en unos minutos, y mira
-                también en spam.
-              </>
-            ),
-          }
-        : {
-            badge: "Solicitud recibida",
-            badgeColor: "#f59e0b",
-            title: "Revisa tu email.",
-            gradient: "linear-gradient(135deg, #00ff7f 0%, #22d3ee 100%)",
-            body: (
-              <>
-                Te hemos mandado un correo de confirmación
-                {email ? <> a {strong(email)}</> : null}. Confirma tu email y te
-                diremos tu puesto en la lista de espera. Nada de spam, solo ese
-                aviso.
-              </>
-            ),
-          }
+/** Pantalla final del embudo: alta confirmada al instante. */
+export default function WaitlistScreen({ queueNumber }: Props) {
+  const copy = {
+    badge: "Estás dentro",
+    badgeColor: "#00ff7f",
+    title: "Confirmado.",
+    gradient: "linear-gradient(135deg, #00ff7f 0%, #22d3ee 100%)",
+    body: (
+      <>
+        {queueNumber ? <>Tu puesto en la lista es el {strong(`#${queueNumber}`)}. </> : null}
+        Se entra por cohortes, en grupos pequeños y por orden de llegada.
+        Cuando abra la próxima te mandamos {strong("tu código de acceso")} a tu
+        correo. No tienes que hacer nada más.
+      </>
+    ),
+  } satisfies { badge: string; badgeColor: string; title: string; gradient: string; body: ReactNode }
 
   return (
     <div

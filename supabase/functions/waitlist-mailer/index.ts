@@ -3,8 +3,9 @@
 //
 // Único punto de salida de correo de la lista de espera. Cuatro acciones:
 //
-//   confirm  { email }        · doble opt-in. La llama la landing con la clave
-//                               anon justo después del insert.
+//   confirm  { email }        · confirma al instante (sin email de por medio)
+//                               y devuelve el puesto en la cola. La llama la
+//                               landing con la clave anon justo después del insert.
 //   welcome  { id }           · tras confirmar. La llama confirm-waitlist-signup
 //                               con la service role key.
 //   cron     {}               · recordatorios + seguimientos. pg_cron, 2×/semana.
@@ -24,7 +25,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import {
-  confirmEmail,
   confirmReminderEmail,
   welcomeEmail,
   inviteEmail,
@@ -149,25 +149,31 @@ const SELECT = "id, email, name, queue_number, followups_sent, invite_code"
 
 // ── Acciones ─────────────────────────────────────────────────────────────────
 
+// Confirma al instante, sin doble opt-in por email: la landing la llama justo
+// después del insert y esta misma respuesta ya trae el puesto en la cola.
 async function actionConfirm(email: string) {
   const clean = email.trim().toLowerCase()
   if (!clean || !clean.includes("@")) return json({ error: "email inválido" }, 400)
 
   const { data: row } = await admin
     .from("waitlist")
-    .select(SELECT + ", confirmed")
+    .update({ confirmed: true })
     .eq("email", clean)
+    .eq("confirmed", false)
+    .select("queue_number")
     .maybeSingle()
 
-  // Respuesta idéntica exista o no la fila: si no, este endpoint sería un
-  // oráculo público para comprobar si un email está apuntado.
-  if (!row) return json({ ok: true })
-  if ((row as { confirmed: boolean }).confirmed) return json({ ok: true, alreadyConfirmed: true })
+  if (row) return json({ ok: true, queueNumber: row.queue_number as number | null })
 
-  const r = row as unknown as Row
-  const tpl = confirmEmail(r.name, confirmUrlFor(r.id))
-  await sendOnce(r, "confirm", tpl)
-  return json({ ok: true })
+  // Ya estaba confirmado (o el email no existe): devolvemos el número si lo
+  // hay. Respuesta con la misma forma en ambos casos para no convertir esto
+  // en un oráculo público de qué emails están apuntados.
+  const { data: existing } = await admin
+    .from("waitlist")
+    .select("queue_number")
+    .eq("email", clean)
+    .maybeSingle()
+  return json({ ok: true, queueNumber: (existing?.queue_number as number | null) ?? null })
 }
 
 async function actionWelcome(id: string) {
@@ -354,7 +360,11 @@ Deno.serve(async (req) => {
 
   // Después de autorizar, nunca antes: si no, un desconocido puede sondear
   // cómo está configurado el proyecto sin tener permiso para nada.
-  if (!RESEND_API_KEY) return json({ error: "RESEND_API_KEY no configurada" }, 500)
+  // `confirm` ya no manda correo (ver actionConfirm), así que no depende de
+  // Resend — el resto de acciones sí.
+  if (payload.action !== "confirm" && !RESEND_API_KEY) {
+    return json({ error: "RESEND_API_KEY no configurada" }, 500)
+  }
 
   switch (payload.action) {
     case "confirm":

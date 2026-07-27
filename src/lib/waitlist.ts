@@ -46,8 +46,8 @@ export class WaitlistError extends Error {
  * valores por defecto), así que la clave anon es segura aquí.
  */
 export type JoinResult = {
-  /** false si el correo de confirmación no llegó a salir (Resend caído/mal configurado). */
-  emailSent: boolean
+  /** Puesto en la cola. Sin doble opt-in por email: se confirma al instante. */
+  queueNumber: number | null
 }
 
 export async function joinWaitlist(signup: WaitlistSignup): Promise<JoinResult> {
@@ -73,14 +73,15 @@ export async function joinWaitlist(signup: WaitlistSignup): Promise<JoinResult> 
     )
   }
 
-  // El fallo de email NO se lanza como error: la fila ya está guardada y
-  // reintentar el formulario chocaría contra el índice único ("ya estás en la
-  // lista"), dejando a la persona en un callejón sin salida. Se devuelve como
-  // dato para que la pantalla de éxito avise en vez de prometer un correo que
-  // no ha salido.
-  const { data, error: mailError } = await supabase.functions.invoke("waitlist-mailer", {
+  // La fila ya está guardada: confirmarla es solo para asignar puesto en la
+  // cola, así que un fallo aquí no debe bloquear el alta ni prometer un
+  // reintento que chocaría contra el índice único del email.
+  const { data, error: confirmError } = await supabase.functions.invoke("waitlist-mailer", {
     body: { action: "confirm", email },
   })
 
-  return { emailSent: !mailError && data?.ok === true }
+  const queueNumber =
+    !confirmError && typeof data?.queueNumber === "number" ? data.queueNumber : null
+
+  return { queueNumber }
 }

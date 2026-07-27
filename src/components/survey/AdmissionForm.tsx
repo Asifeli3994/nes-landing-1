@@ -69,12 +69,8 @@ const TOTAL_STEPS = QUESTIONS.length + 1
 // Componente
 // ─────────────────────────────────────────────────────────────────────────────
 type Props = {
-  /**
-   * Se invoca tras guardar la solicitud. `emailSent` es false si la fila se
-   * guardó pero el correo de confirmación no salió, para no prometerle un
-   * email que no existe.
-   */
-  onSubmit: (email: string, emailSent: boolean) => void
+  /** Se invoca tras guardar y confirmar la solicitud, con el puesto en la cola. */
+  onSubmit: (email: string, queueNumber: number | null) => void
   /** Cerrar y volver a la landing (Escape o ✕) */
   onClose: () => void
 }
@@ -131,7 +127,7 @@ export default function AdmissionForm({ onSubmit, onClose }: Props) {
     setSubmitting(true)
     setError(null)
     try {
-      const { emailSent } = await joinWaitlist({
+      const { queueNumber } = await joinWaitlist({
         name: answers[1] ?? "",
         email,
         currentProject: answers[3] ?? "",
@@ -139,7 +135,7 @@ export default function AdmissionForm({ onSubmit, onClose }: Props) {
         expectations: answers[5] ?? "",
         hoursPerWeek,
       })
-      onSubmit(email, emailSent)
+      onSubmit(email, queueNumber)
     } catch (err) {
       setError(
         err instanceof WaitlistError

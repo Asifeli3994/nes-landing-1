@@ -1,0 +1,13 @@
+# waitlist-mailer: la landing llama a la acción `confirm` con la clave anon, así
+# que necesita JWT. El resto de acciones se protegen dentro de la función
+# (service role o users.is_admin).
+[functions.waitlist-mailer]
+verify_jwt = true
+
+# Los dos siguientes los abre el cliente de correo pinchando un enlace: no hay
+# cabecera Authorization posible.
+[functions.confirm-waitlist-signup]
+verify_jwt = false
+
+[functions.waitlist-unsubscribe]
+verify_jwt = false

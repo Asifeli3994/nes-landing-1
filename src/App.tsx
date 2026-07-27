@@ -1,44 +1,63 @@
 import { useState } from "react"
-import IntroSequence from "./components/landing/IntroSequence"
 import HeroSection from "./components/landing/HeroSection"
-import BreakRulesSection from "./components/landing/BreakRulesSection"
-import HorizontalBenefits from "./components/landing/HorizontalBenefits"
+import PainSection from "./components/landing/PainSection"
+import HowItWorksSection from "./components/landing/HowItWorksSection"
+import FounderSection from "./components/landing/FounderSection"
 import FinalCTASection from "./components/landing/FinalCTASection"
-import Survey from "./components/survey/Survey"
-import WaitingScreen from "./components/survey/WaitingScreen"
+import AdmissionForm from "./components/survey/AdmissionForm"
+import WaitlistScreen, { type WaitlistMode } from "./components/survey/WaitlistScreen"
 import "./styles/landing.css"
 
-type Screen = "intro" | "landing" | "survey" | "waiting"
+type Screen = "landing" | "form" | "waitlist"
 
 /**
- * Landing inmersiva con acceso restringido (encuesta de admisión).
+ * confirm-waitlist-signup devuelve a la persona aquí con ?confirmado=1 (y
+ * &puesto=N) tras pinchar el enlace del correo. Se lee una sola vez, al
+ * montar, y se limpia de la URL para que un refresco no la deje clavada en
+ * la pantalla de confirmación.
+ */
+function readConfirmParams(): { confirmed: boolean; queueNumber: number | null } {
+  if (typeof window === "undefined") return { confirmed: false, queueNumber: null }
+  const params = new URLSearchParams(window.location.search)
+  const confirmed = params.get("confirmado") === "1"
+  if (!confirmed) return { confirmed: false, queueNumber: null }
+
+  const raw = Number(params.get("puesto"))
+  window.history.replaceState({}, "", window.location.pathname)
+  return { confirmed: true, queueNumber: Number.isInteger(raw) && raw > 0 ? raw : null }
+}
+
+/**
+ * Landing mono-objetivo para tráfico social (Instagram → mobile).
  *
- * Flujo:
- *   intro  → Matrix + pills (solo primera visita por sesión)
- *   landing → Hero + BreakRules + Horizontal + FinalCTA
- *   survey  → 12 preguntas, una a una, con barra de progreso azul
- *   waiting → countdown 30:00 + botón de acceso inmediato al login
+ * Estructura (framework PAS):
+ *   1. Hero — headline + CTA en primera persona
+ *   2. Agitación → giro a solución (BAB)
+ *   3. Cómo funciona en 3 pasos
+ *   4. Credibilidad early-stage (fundador)
+ *   5. CTA final repetido
+ *
+ * Flujo: landing → formulario (6 preguntas) → beta cerrada + lista de espera.
  */
 export default function App() {
-  const [screen, setScreen] = useState<Screen>(() => {
-    if (typeof window === "undefined") return "intro"
-    return sessionStorage.getItem("nes:introSeen") === "1" ? "landing" : "intro"
-  })
+  // useState(initializer) para que readConfirmParams corra una sola vez y no
+  // en cada render (limpia la query string como efecto secundario).
+  const [confirmParams] = useState(readConfirmParams)
+  const [screen, setScreen] = useState<Screen>(
+    confirmParams.confirmed ? "waitlist" : "landing"
+  )
+  const [submittedEmail, setSubmittedEmail] = useState("")
+  const [mode, setMode] = useState<WaitlistMode>(
+    confirmParams.confirmed ? "confirmed" : "pending"
+  )
 
-  const completeIntro = () => {
-    sessionStorage.setItem("nes:introSeen", "1")
-    setScreen("landing")
-    window.scrollTo({ top: 0, behavior: "auto" })
-  }
+  const openForm = () => setScreen("form")
 
-  const openSurvey = () => {
+  const submitDone = (email: string, emailSent: boolean) => {
+    setSubmittedEmail(email)
+    setMode(emailSent ? "pending" : "email-failed")
     window.scrollTo({ top: 0, behavior: "auto" })
-    setScreen("survey")
-  }
-
-  const submitDone = () => {
-    window.scrollTo({ top: 0, behavior: "auto" })
-    setScreen("waiting")
+    setScreen("waitlist")
   }
 
   return (
@@ -50,25 +69,30 @@ export default function App() {
         fontFamily: "'Inter','Segoe UI',system-ui,sans-serif",
       }}
     >
-      {screen === "intro" && <IntroSequence onComplete={completeIntro} />}
-
-      {(screen === "landing" || screen === "survey" || screen === "waiting") && (
+      {screen !== "waitlist" && (
         <>
-          <HeroSection />
-          <BreakRulesSection />
-          <HorizontalBenefits />
-          <FinalCTASection onCrossThreshold={openSurvey} />
+          <HeroSection onCta={openForm} />
+          <PainSection />
+          <HowItWorksSection />
+          <FounderSection />
+          <FinalCTASection onCta={openForm} />
         </>
       )}
 
-      {screen === "survey" && (
-        <Survey
+      {screen === "form" && (
+        <AdmissionForm
           onSubmit={submitDone}
           onClose={() => setScreen("landing")}
         />
       )}
 
-      {screen === "waiting" && <WaitingScreen />}
+      {screen === "waitlist" && (
+        <WaitlistScreen
+          email={submittedEmail}
+          mode={mode}
+          queueNumber={confirmParams.queueNumber}
+        />
+      )}
     </div>
   )
 }

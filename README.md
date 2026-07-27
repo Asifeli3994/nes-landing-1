@@ -56,3 +56,64 @@ src/
    - Scroll horizontal espacial con 4 beneficios en glassmorphism.
    - CTA final con haces de luz convergiendo y botón pulsante "Cruzar el
      umbral" → abre la web del login.
+
+## Lista de espera: puesta en marcha
+
+El flujo completo (captación → confirmación → bienvenida → seguimientos →
+apertura de cohorte) está desplegado, pero **no sale ni un email hasta que se
+configure Resend**. Sin esas claves nadie confirma, y sin confirmar nadie recibe
+puesto en la cola.
+
+### 1. Resend
+
+1. Crear cuenta en [resend.com](https://resend.com).
+2. Domains → Add Domain → `noemprendassolo.com`, y añadir los registros DNS
+   (SPF, DKIM y DMARC) donde esté el dominio. Sin dominio verificado Resend solo
+   deja enviar al correo con el que se registró la cuenta.
+3. API Keys → Create API Key, permiso *Sending access*.
+
+### 2. Secrets en Supabase
+
+Dashboard → Project Settings → Edge Functions → Secrets:
+
+| Secret | Valor |
+| --- | --- |
+| `RESEND_API_KEY` | la key del paso anterior (obligatorio) |
+| `RESEND_FROM` | `No Emprendas Solo <hola@noemprendassolo.com>` |
+| `SITE_URL` | URL de esta landing |
+| `LOGIN_URL` | login de la app, destino del email de invitación |
+
+`CONFIRM_BASE_URL` ya no hace falta: se deriva de `SUPABASE_URL`.
+
+### 3. Clave para el cron
+
+El cron de seguimientos (`waitlist-followups`, martes y viernes a las 09:00 UTC)
+lee la service role key desde Vault, para no dejarla escrita dentro del job.
+Una sola vez, en el SQL Editor:
+
+```sql
+select vault.create_secret('<SERVICE_ROLE_KEY>', 'service_role_key');
+```
+
+### 4. Comprobar que funciona
+
+Apuntarse desde la landing con un correo real y verificar que llega el email de
+confirmación, que al pulsarlo devuelve a la landing con el puesto asignado, y
+que llega la bienvenida.
+
+### Abrir la cohorte
+
+Desde `/admin` de la app principal, sección **Abrir cohorte**: «Ver a quién»
+muestra a quién le tocaría (no envía nada) y «Enviar códigos» genera un código
+de un solo uso por persona y lo manda. Va por orden de llegada y salta a quien
+ya fue invitado o se dio de baja.
+
+### Arquitectura
+
+| Pieza | Qué hace |
+| --- | --- |
+| `waitlist` | tabla privada: anon solo puede INSERT, nadie puede leerla |
+| `waitlist_emails` | registro de envíos; su PK `(waitlist_id, kind)` es lo que impide correos duplicados |
+| `waitlist-mailer` | única salida de correo. Acciones: `confirm`, `welcome`, `cron`, `invite` |
+| `confirm-waitlist-signup` | destino del enlace de confirmación; asigna el puesto y pide la bienvenida |
+| `waitlist-unsubscribe` | baja en un clic (RGPD) |

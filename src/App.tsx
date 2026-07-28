@@ -6,6 +6,7 @@ import FounderSection from "./components/landing/FounderSection"
 import FinalCTASection from "./components/landing/FinalCTASection"
 import AdmissionForm from "./components/survey/AdmissionForm"
 import WaitlistScreen from "./components/survey/WaitlistScreen"
+import { captureUtmParams } from "./lib/utm"
 import "./styles/landing.css"
 
 type Screen = "landing" | "form" | "waitlist"
@@ -23,6 +24,9 @@ type Screen = "landing" | "form" | "waitlist"
  * Flujo: landing → formulario (6 preguntas) → beta cerrada + lista de espera.
  */
 export default function App() {
+  // useState(initializer) para que corra una sola vez, en el primer render,
+  // antes de que el usuario pueda navegar y perder la query string.
+  useState(captureUtmParams)
   const [screen, setScreen] = useState<Screen>("landing")
   const [queueNumber, setQueueNumber] = useState<number | null>(null)
 

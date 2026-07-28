@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient"
+import { getStoredUtmParams } from "./utm"
 
 export type ProjectPhase = "idea" | "building" | "users"
 export type HoursPerWeek = "<5" | "5-15" | ">15"
@@ -53,6 +54,8 @@ export type JoinResult = {
 export async function joinWaitlist(signup: WaitlistSignup): Promise<JoinResult> {
   const email = signup.email.trim().toLowerCase()
 
+  const utm = getStoredUtmParams()
+
   const { error } = await supabase.from("waitlist").insert({
     name: signup.name.trim(),
     email,
@@ -61,6 +64,10 @@ export async function joinWaitlist(signup: WaitlistSignup): Promise<JoinResult> 
     expectations: signup.expectations.trim(),
     hours_per_week: signup.hoursPerWeek,
     consent_at: new Date().toISOString(),
+    utm_source: utm.utm_source,
+    utm_medium: utm.utm_medium,
+    utm_campaign: utm.utm_campaign,
+    utm_content: utm.utm_content,
   })
 
   if (error) {
